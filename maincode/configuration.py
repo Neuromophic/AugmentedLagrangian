@@ -1,5 +1,16 @@
 import argparse
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if str(v).lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif str(v).lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('boolean value expected.')
+
+
 parser = argparse.ArgumentParser(prog = 'PowerAware',
                                  description = 'Training for Power Efficient Printed Neural Networks')
 
@@ -37,7 +48,7 @@ parser.add_argument('--IN_test',               type=float,     default=0.,      
 parser.add_argument('--R_train',               type=int,       default=1,                     help='number of sampling for input noise in training')
 parser.add_argument('--R_test',                type=int,       default=1,                     help='number of sampling for input noise in testing')
 # regularization
-parser.add_argument('--pathnorm',              type=bool,      default=False,                 help='path-norm as regularization for improving robustness against input noise')
+parser.add_argument('--pathnorm',              type=str2bool,  default=False,                 help='path-norm as regularization for improving robustness against input noise')
 # network-related
 parser.add_argument('--hidden',                type=list,      default=[3],                   help='topology of the hidden layers')
 # training-related
@@ -46,14 +57,14 @@ parser.add_argument('--DEVICE',                type=str,       default='cpu',   
 parser.add_argument('--PATIENCE',              type=int,       default=500,                   help='patience for early-stopping')
 parser.add_argument('--EPOCH',                 type=int,       default=10**10,                help='maximal epochs')
 parser.add_argument('--LR',                    type=float,     default=0.1,                   help='learning rate')
-parser.add_argument('--PROGRESSIVE',           type=bool,      default=True,                  help='whether the learning rate will be adjusted')
+parser.add_argument('--PROGRESSIVE',           type=str2bool,  default=True,                  help='whether the learning rate will be adjusted')
 parser.add_argument('--LR_PATIENCE',           type=int,       default=100,                   help='patience for updating learning rate')
 parser.add_argument('--LR_DECAY',              type=float,     default=0.5,                   help='decay of learning rate for progressive lr')
 parser.add_argument('--LR_MIN',                type=float,     default=1e-4,                  help='minimal learning rate for stop training')
 # metrics
 parser.add_argument('--metric',                type=str,       default='acc',                 help='nominal accuracy or measuring-aware accuracy')
 # server-related
-parser.add_argument('--TIMELIMITATION',        type=float,     default=45,                    help='maximal running time (in hour)')
+parser.add_argument('--TIMELIMITATION',        type=float,     default=70,                    help='maximal running time (in hour)')
 
 # hardware-related hyperparameters
 # aging-related hyperparameters
@@ -74,13 +85,14 @@ parser.add_argument('--powerestimator',        type=str,       default='power', 
 parser.add_argument('--powerbalance',          type=float,     default=0.8,                 help='the scaling term for energy')
 parser.add_argument('--estimatorbalance',      type=float,     default=0.1,                 help='the scaling term for energy')
 parser.add_argument('--pgmin',                 type=float,     default=1e-7  ,                help='minimal printable conductance gmin')
-parser.add_argument('--lnc',                   type=bool,      default=True,                  help='shared learnable nonlinear components')
+parser.add_argument('--lnc',                   type=str2bool,  default=True,                  help='shared learnable nonlinear components')
 
 # log-file-related information
 parser.add_argument('--projectname',           type=str,       default='project',             help='name of the project')
 parser.add_argument('--temppath',              type=str,       default='/temp',               help='path to temp files')
 parser.add_argument('--logfilepath',           type=str,       default='/log',                help='path to log files')
-parser.add_argument('--recording',             type=bool,      default=False,                 help='save information in each epoch')
-parser.add_argument('--recordpath',           type=str,       default='/record',              help='save information in each epoch')
+parser.add_argument('--report_freq',           type=int,       default=10,                    help='write log in every N epochs')
+parser.add_argument('--recording',             type=str2bool,  default=False,                 help='save information in each epoch')
+parser.add_argument('--recordpath',            type=str,       default='/record',              help='save information in each epoch')
 parser.add_argument('--savepath',              type=str,       default='/experiment',         help='save information in each epoch')
 parser.add_argument('--loglevel',              type=str,       default='info',                help='level of message logger')

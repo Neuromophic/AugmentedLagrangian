@@ -23,9 +23,9 @@ class pLayer(torch.nn.Module):
         self.theta_ = torch.nn.Parameter(theta, requires_grad=True)
 
         # for 3 masks: 1 --> unchanged; 0 --> changed
-        self.theta_mask = torch.ones(theta.shape)
-        self.act_mask = torch.ones(n_out).view(1,-1)
-        self.inv_mask = torch.ones(n_in + 2).view(-1,1)
+        self.theta_mask = torch.ones(theta.shape).to(self.device)
+        self.act_mask = torch.ones(n_out).view(1,-1).to(self.device)
+        self.inv_mask = torch.ones(n_in + 2).view(-1,1).to(self.device)
 
         self.pruned = False
 
@@ -331,6 +331,6 @@ class Lossfunction(torch.nn.Module):
 
     def forward(self, nn, x, label):
         if self.args.powerestimator == 'power':
-            return (1. - self.args.powerbalance) * self.standard(nn(x), label) + self.args.powerbalance * self.PowerEstimator(nn, x)
+            return (1. - self.args.powerbalance) * self.standard(nn(x), label) + self.args.powerbalance * self.PowerEstimator(nn, x) * 100
         elif self.args.powerestimator == 'AL':
             return None

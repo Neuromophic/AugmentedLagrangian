@@ -1,0 +1,13 @@
+sbatch run_baseline_PAT_old_01.sh
+sbatch run_baseline_PAT_old_02.sh
+sbatch run_baseline_PAT_old_03.sh
+sbatch run_baseline_PAT_old_04.sh
+sbatch run_baseline_PAT_old_05.sh
+sbatch run_baseline_PAT_old_06.sh
+sbatch run_baseline_PAT_old_07.sh
+sbatch run_baseline_PAT_old_08.sh
+sbatch run_baseline_PAT_old_09.sh
+sbatch run_baseline_PAT_old_10.sh
+sbatch run_baseline_PAT_old_11.sh
+sbatch run_baseline_PAT_old_12.sh
+sbatch run_baseline_PAT_old_13.sh
