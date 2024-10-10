@@ -3,13 +3,13 @@ import numpy as np
 import random
 import os
 
-def save_checkpoint(epoch, model, optimizer, loss, setup, path):
+def save_checkpoint(epoch, model, optimizer, loss, lossfunction, setup, path):
     filename = f'{path}/{setup}.ckp'
     if not os.path.exists(path):
         os.makedirs(path)
 
     random_state = {'random': random.getstate(), 'numpy': np.random.get_state(), 'torch': torch.random.get_rng_state()}
-    checkpoint = {'epoch': epoch, 'model': model, 'optimizer': optimizer, 'loss': loss, 'random_state': random_state}
+    checkpoint = {'epoch': epoch, 'model': model, 'optimizer': optimizer, 'loss': loss, 'lossfunction':lossfunction, 'random_state': random_state}
     torch.save(checkpoint, filename)
     return None
 
@@ -23,7 +23,8 @@ def load_checkpoint(setup, path):
         model = checkpoint['model']
         optimizer = checkpoint['optimizer']
         loss = checkpoint['loss']
-        return epoch+1, model, optimizer, loss
+        lossfunction = checkpoint['lossfunction']
+        return epoch+1, model, optimizer, loss, lossfunction
     else:
         return None
     
@@ -43,6 +44,7 @@ def load_recorded_checkpoint(epoch, setup, path):
         model = checkpoint['model']
         train_loss = checkpoint['train_loss']
         valid_loss = checkpoint['valid_loss']
+        lossfunction = checkpoint['lossfunction']
         return epoch, model, train_loss, valid_loss
     else:
         return None

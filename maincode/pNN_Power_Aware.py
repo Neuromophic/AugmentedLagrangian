@@ -51,7 +51,7 @@ class pLayer(torch.nn.Module):
 
         num_t_m = self.theta_mask.numel()
         num_a_m = self.act_mask.numel()
-        num_i_m = self.inv_mask.numel()
+        num_i_m = self.inv_mask.numel() - 2
 
         return num_t,num_a,num_i,num_t_m,num_a_m,num_i_m
 
@@ -68,7 +68,8 @@ class pLayer(torch.nn.Module):
 
     @property
     def theta(self):
-        temp = self.theta_mask * (self.theta_before_pruning)
+        # temp = self.theta_mask * (self.theta_before_pruning)
+        temp = self.theta_before_pruning
         relu = torch.nn.ReLU()
         return relu(temp) * (1. - self.inv_mask) + temp * self.inv_mask
 
@@ -329,8 +330,18 @@ class Lossfunction(torch.nn.Module):
         _ = nn(x)
         return nn.Power
 
+    def constraint(self, nn):
+        return nn.Power - self.args.POWER
+    
+    def psi(self, nn):
+        if self.args.lambda_ + self.args.mu * self.constraint(nn) >= 0:
+            return (self.args.lambda_ * self.constraint(nn)) + (self.args.mu/2) * (self.constraint(nn) ** 2)
+        else:
+            return -(self.args.lambda_ ** 2) / (2 * self.args.mu)
+
     def forward(self, nn, x, label):
         if self.args.powerestimator == 'power':
             return (1. - self.args.powerbalance) * self.standard(nn(x), label) + self.args.powerbalance * self.PowerEstimator(nn, x) * 100
         elif self.args.powerestimator == 'AL':
-            return None
+            _ = nn(x)
+            return self.standard(nn(x), label) + self.psi(nn)

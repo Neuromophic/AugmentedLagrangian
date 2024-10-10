@@ -2,12 +2,8 @@ import time
 import math
 from .checkpoint import *
 from .evaluation import *
-import os
 
 def train_pnn(nn, train_loader, valid_loader, lossfunction, optimizer, args, logger, current_epoch, UUID='default'):
-    tmpdir = os.getenv('TMPDIR', default='.')
-    args.temppath = tmpdir
-    
     start_training_time = time.time()
     
     evaluator = Evaluator(args)
@@ -79,7 +75,7 @@ def train_pnn(nn, train_loader, valid_loader, lossfunction, optimizer, args, log
                         f' patience: {patience:-3d} | lr: {current_lr:.3e} | Epoch time: {end_epoch_time-start_epoch_time:.1f} |'\
                         f' Power: {train_power.item():.2e} | lambda: {lossfunction.args.lambda_:.3e} | mu: {lossfunction.args.mu:.3e} |')
         
-    _, resulted_nn, _,_,_ = load_checkpoint(UUID, args.temppath)
+    _, resulted_nn, _,_ = load_checkpoint(UUID, args.temppath)
     
     if early_stop:
         os.remove(f'{args.temppath}/{UUID}.ckp')
@@ -88,9 +84,6 @@ def train_pnn(nn, train_loader, valid_loader, lossfunction, optimizer, args, log
 
 
 def train_pnn_progressive(nn, train_loader, valid_loader, lossfunction, optimizer, args, logger, current_epoch=0, UUID='default'):
-    tmpdir = os.getenv('TMPDIR', default='.')
-    args.temppath = tmpdir
-    
     start_training_time = time.time()
     UUID += '_progressive'
 
@@ -155,7 +148,7 @@ def al_train_pnn_progressive(nn, train_loader, valid_loader, lossfunction, optim
                 else:
                     lossfunction.args.lambda_ = temp.item()
                 
-                lossfunction.args.mu += 100.
+                lossfunction.args.mu *= 1.5
     
                 # reset learning inital learning rate
                 for g in optimizer.param_groups:
@@ -165,4 +158,78 @@ def al_train_pnn_progressive(nn, train_loader, valid_loader, lossfunction, optim
                 logger.info(f'lr reset to {current_lr}.')
                 print(f'lr reset to {current_lr}.')
 
-    return nn, early_stop, lossfunction
+    return nn, early_stop
+    
+    # evaluator = Evaluator(args)
+    
+    # best_valid_loss = math.inf
+    
+    # for g in optimizer.param_groups:
+    #     current_lr = g['lr']
+    # patience_al_update = 0
+    
+    # # lr_update = False
+    # early_stop = False
+    
+    # if load_checkpoint(UUID, args.temppath):
+    #     current_epoch, nn, optimizer, best_valid_loss = load_checkpoint(UUID, args.temppath)
+    #     for g in optimizer.param_groups:
+    #         current_lr = g['lr']
+    #         g['params'] = [p for p in nn.parameters()]
+    #     logger.info(f'Restart previous training from {current_epoch} epoch with lr: {current_lr}.')
+    #     print(f'Restart previous training from {current_epoch} epoch with lr: {current_lr}.')
+    # else:
+    #     current_epoch = 0
+    
+    # n_update = 0
+
+    # C = math.inf
+    # while(C > 0.):
+
+    #     early_stop = False
+
+    #     for epoch in range(current_epoch, 10**10):
+    #         start_epoch_time = time.time()
+            
+    #         msg = ''
+            
+    #         for x_train, y_train in train_loader:
+    #             msg += f'{current_lr}'
+    #             msg += f'hyperparameters in printed neural network for training :\nepoch : {epoch:-6d} |\n'
+                
+    #             L_train = lossfunction(nn, x_train, y_train)
+    #             train_acc, train_power = evaluator(nn, x_train, y_train)
+    #             optimizer.zero_grad()
+    #             L_train.backward()
+    #             optimizer.step()
+    #             C = nn.Power - args.POWER
+
+    #         with torch.no_grad():
+    #             for x_valid, y_valid in valid_loader:
+    #                 msg += f'hyperparameters in printed neural network for validation :\nepoch : {epoch:-6d} |\n'
+                    
+    #                 L_valid = lossfunction(nn, x_valid, y_valid)
+    #                 valid_acc, valid_power = evaluator(nn, x_valid, y_valid)
+            
+    #         logger.debug(msg)
+            
+    #         if args.recording:
+    #             record_checkpoint(epoch, nn, L_train, L_valid, UUID, args.recordpath)
+                
+        
+    #         if L_valid.item() < best_valid_loss:
+    #             best_valid_loss = L_valid.item()
+    #             save_checkpoint(epoch, nn, optimizer, best_valid_loss, UUID, args.temppath)
+    #             patience_al_update = 0
+    #         else:
+    #             patience_al_update += 1
+
+    #         if patience_al_update > args.AL_PATIENCE:
+    #             patience_al_update = 0
+    #             print('Overfits training data, update lambda.')
+    #             logger.info('Overfits training data, update lambda.')
+                
+    #             n_update = n_update + 1
+    #             update_lambda(args, nn)
+    #             args.phi = np.log(epoch + 1)
+
